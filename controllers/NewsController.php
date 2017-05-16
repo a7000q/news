@@ -8,6 +8,7 @@ use yii\data\ActiveDataProvider;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\web\UploadedFile;
 
 /**
  * NewsController implements the CRUD actions for News model.
@@ -37,6 +38,15 @@ class NewsController extends Controller
     {
         $dataProvider = new ActiveDataProvider([
             'query' => News::find(),
+            'sort' => [
+                'attributes' => [
+                    'dateText' => [
+                        'asc' => ['date' => SORT_ASC],
+                        'desc' => ['date' => SORT_DESC],
+                        'default' => SORT_ASC
+                    ],
+                ]
+            ]
         ]);
 
         return $this->render('index', [
@@ -65,7 +75,11 @@ class NewsController extends Controller
     {
         $model = new News();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+        if (Yii::$app->request->isPost) {
+            $model->photoFile = UploadedFile::getInstance($model, 'photoFile');
+            $model->savePhoto();
+            $model->load(Yii::$app->request->post());
+            $model->save();
             return $this->redirect(['view', 'id' => $model->id]);
         } else {
             return $this->render('create', [
@@ -84,9 +98,14 @@ class NewsController extends Controller
     {
         $model = $this->findModel($id);
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+        if (Yii::$app->request->isPost) {
+            $model->photoFile = UploadedFile::getInstance($model, 'photoFile');
+            $model->savePhoto();
+            $model->load(Yii::$app->request->post());
+            $model->save();
+
             return $this->redirect(['view', 'id' => $model->id]);
-        } else {
+        }  else {
             return $this->render('update', [
                 'model' => $model,
             ]);
